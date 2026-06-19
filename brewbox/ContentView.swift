@@ -10,19 +10,25 @@ import SwiftUI
 struct ContentView: View {
     @State var searchString: String = ""
     
+    @State var packages: [String.SubSequence] = []
+    @State var selectedPackages: Set<String.SubSequence> = []
+    
     var body: some View {
         HStack {
             VStack {
                 // list of packages
-                // [NAME] (space) [URLBUTTON] [FILELOCCATIONBUTTON]
+                // [NAME] (space) [VERSION] [URLBUTTON] [FILELOCCATIONBUTTON]
                 
-                List {
-                    
+                List(selection: $selectedPackages) {
+                    ForEach(packages, id: \.self) { package in
+                        Text(package)
+                    }
                 }
                 
                 HStack {
                     Button {
                         // refresh list
+                        packages = refreshList()
                         
                     } label: {
                         Image(systemName: "arrow.clockwise")
@@ -87,11 +93,15 @@ struct ContentView: View {
             
             VStack {
                 Text("Console")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                    .padding()
+                    .monospaced()
             }
-            .frame(maxWidth: 200, maxHeight: .infinity)
+            .frame(maxWidth: 300, maxHeight: .infinity)
             .background(Color.black)
         }
         .padding()
+        .onAppear() { packages = refreshList() }
     }
 }
 
