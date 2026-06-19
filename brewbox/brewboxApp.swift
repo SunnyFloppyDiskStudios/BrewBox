@@ -12,6 +12,7 @@ struct brewboxApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
-        }
+                .frame(width: 1200, height: 650)
+        }.windowResizability(.contentSize)
     }
 }
