@@ -8,11 +8,16 @@
 import SwiftUI
 
 struct ContentView: View {
+    @Environment(\.openWindow) private var openWindow
+    @Environment(\.dismissWindow) private var dismissWindow
+    
+    @EnvironmentObject var appModel: AppModelController
+    
     @State var searchString: String = ""
     
-    @State var brewInfo: String = "0 kegs, 0 files, 0B"
+    @State var brewInfo: String = "x kegs, x files, x.xB"
     
-    @State public var consoleOutput: String = "Console\n\n"
+//    @State public var consoleOutput: String = "Console\n\n"
     
     @State var packages: [String.SubSequence] = []
     @State var selectedPackages: Set<String.SubSequence> = []
@@ -22,7 +27,8 @@ struct ContentView: View {
             VStack {
                 HStack {
                     Text(brewInfo)
-                        .frame(alignment: .leading)
+                    
+                    Spacer()
                 }
                 
                 // list of packages
@@ -33,9 +39,12 @@ struct ContentView: View {
                         HStack {
                             Text(package)
                             
+                            Text(package) // fullname
+                                .foregroundStyle(.secondary)
+                            
                             Spacer()
                             
-                            Text("0.0")
+                            Text("x")
                             
                             Button {
                                 // url
@@ -59,7 +68,7 @@ struct ContentView: View {
                 HStack {
                     Button {
                         // refresh list
-                        packages = runRefreshList($consoleOutput)
+                        packages = runRefreshList($appModel.consoleOutput)
                         
                     } label: {
                         Image(systemName: "arrow.clockwise")
@@ -78,6 +87,7 @@ struct ContentView: View {
                     
                     Button {
                         // cleanup
+                        runCleanup($appModel.consoleOutput)
                         
                     } label: {
                         Image(systemName: "sparkles.2")
@@ -86,6 +96,7 @@ struct ContentView: View {
                     
                     Button {
                         // terminal command
+                        openWindow(id: "runTerminalCommand")
                         
                     } label: {
                         Image(systemName: "apple.terminal")
@@ -111,8 +122,10 @@ struct ContentView: View {
                     .tint(.red)
                     
                     TextField("Search", text: $searchString)
+                        .frame(height: 20)
                     
                 }
+                .padding()
                 
                 // buttons
                 // refresh
@@ -125,17 +138,18 @@ struct ContentView: View {
             ScrollViewReader { proxy in
                 ScrollView {
                     VStack {
-                        Text(consoleOutput)
+                        Text(appModel.consoleOutput)
                             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                             .padding()
                             .monospaced()
+                            .textSelection(.enabled)
                         
                         Color.clear
                             .frame(height: 1)
                             .id("BOTTOM")
                     }
                 }
-                .onChange(of: consoleOutput) {
+                .onChange(of: appModel.consoleOutput) {
                     withAnimation {
                         proxy.scrollTo("BOTTOM", anchor: .bottom)
                     }
@@ -146,8 +160,8 @@ struct ContentView: View {
         }
         .padding()
         .onAppear() {
-            brewInfo = runGetBrewInfo($consoleOutput)
-            packages = runRefreshList($consoleOutput)
+            brewInfo = runGetBrewInfo($appModel.consoleOutput)
+            packages = runRefreshList($appModel.consoleOutput)
         }
     }
 }
